@@ -85,7 +85,7 @@ public class ArticService extends JobService {
         // attempt to restart the service through broadcast,
         // so we can run again
 
-        ArticUtils.setNextAlarm(this, 7 * 1000);
+        ArticService.initialize(this);
         return false;
     }
 }

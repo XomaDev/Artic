@@ -58,27 +58,4 @@ public class ArticUtils {
         }
         return identifier.toString();
     }
-
-    /**
-     * Initializes next alarm service using broadcast receiver
-     *
-     * @param context Application Context
-     * @param time    latency of the alarm
-     */
-
-    public static void setNextAlarm(Context context, long time) {
-        final long triggerAtMillis =
-                System.currentTimeMillis() + time;
-
-        Intent intent = new Intent(context, ArticAlarm.class);
-
-        // we will update if any alarm is already running
-        PendingIntent pd = PendingIntent.getBroadcast(context,
-                0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager manager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
-
-        // initialize the alarm
-        manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pd);
-    }
 }

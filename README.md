@@ -33,11 +33,8 @@ Artic uses Firebase to send notifications across devices.
 Artic is mainly designed to work in the background.
 
 ````java
-// save the values so artic can use them
+// initialize the background service
 Artic.watch(activity, token, url, topic);
-
-// initialize the service
-ArticService.initialize(activity);
 ````
 
 To use Artic, you also need to declare some things.
@@ -49,8 +46,6 @@ To use Artic, you also need to declare some things.
     <service android:name="xyz.kumaraswamy.artic.ArticService"
              android:permission="android.permission.BIND_JOB_SERVICE"
              android:exported="true"/>
-    <receiver android:name="xyz.kumaraswamy.artic.ArticAlarm"
-              android:exported="true"/>
 </application>
 ````
 
