@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="androidx">
+    <CLASSES>
+      <root url="file://$USER_HOME$/AppData/Roaming/rush/dev-deps/androidx" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$USER_HOME$/AppData/Roaming/rush/dev-deps/androidx" recursive="false" />
+  </library>
+</component>
