@@ -137,6 +137,7 @@ public class Artic {
                 .putString("url", url)
                 .putString("topic", topic);
         preferences.commit();
+        ArticUtils.setNextAlarm(context, 1000);
     }
 
     public static SharedPreferences articSharedPreferences(Context context) {
