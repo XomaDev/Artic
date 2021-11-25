@@ -40,6 +40,20 @@ Artic.watch(activity, token, url, topic);
 ArticService.initialize(activity);
 ````
 
+To use Artic, you also need to declare some things.
+
+````xml
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+<application>
+    <service android:name="xyz.kumaraswamy.artic.ArticService"
+             android:permission="android.permission.BIND_JOB_SERVICE"
+             android:exported="true"/>
+    <receiver android:name="xyz.kumaraswamy.artic.ArticAlarm"
+              android:exported="true"/>
+</application>
+````
+
 <hr>
 
 ### Preview
