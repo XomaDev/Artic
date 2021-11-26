@@ -1,5 +1,6 @@
 package xyz.kumaraswamy.artic;
 
+import android.app.job.JobScheduler;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -38,11 +39,14 @@ public class Artic {
 
     private final ArticDatabase database;
 
+    private final Context context;
+    private final String token;
     /**
      * Firebase component
      */
 
     private Firebase firebase;
+    private final String url;
 
     /**
      * Artic DataChange listener that reports back
@@ -57,15 +61,23 @@ public class Artic {
 
     private final ArticNotification articNotification;
 
-    public Artic(Context context) {
-        this(context, articSharedPreferences(context).getString("token", ""),
-                articSharedPreferences(context).getString("url", ""));
+    static Artic getInstance(Context context) {
+        SharedPreferences preferences = articSharedPreferences(context);
+        return new Artic(context,
+                preferences.getString("token", ""),
+                preferences.getString("url", ""));
     }
 
     public Artic(Context context, String token, String url) {
+        if (!isInitialized) {
+            throw new IllegalArgumentException("Artic Not Initialized");
+        }
+        this.context = context;
+        this.token = token;
         // initialize the firebase with
         // the bucket 'artic'
         firebase = new Firebase(url).child(SIMPLE_NAME);
+        this.url = url;
 
         // initialize the auth listener that will
         // connect the token for us
@@ -78,32 +90,52 @@ public class Artic {
         // keep a copy in field, so we don't have to create it again
         articChildListener = new ArticChildListener(new DataChangedInterface() {
             @Override
-            public void dataChanged(String key, String value) {
+            public void whenNewMessage(String key, String value) {
                 try {
-                    JSONObject jsonObject = new JSONObject(value);
-                    articNotification.handle(key, jsonObject);
+                    dispatchDataChangeEvent(key, value);
                 } catch (JSONException e) {
                     Log.e(NAME + " Artic Listener", "Unable to " +
                             "handle data change event: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });
     }
 
+    private void dispatchDataChangeEvent(String key, String value) throws JSONException {
+        articNotification.handle(key, new JSONObject(value));
+    }
+
+
     /**
-     * Stores a simple message in the database, when the data is
-     * updated notification is accordingly managed
+     * Sends a simple message
      *
-     * @param topic the topic (key) of the message
-     * @param title Title of the notification
+     * @param topic   the topic (key) of the message
+     * @param title   Title of the notification
      * @param message Content of the notification
      */
 
     public void simpleMessage(final String topic, String title, String message) throws JSONException, ParseException {
+        message(topic, title, message, context.getPackageName(), "<artic>");
+    }
+
+    /**
+     * Sends a message with activity and startValue,
+     *
+     * @param topic   the topic (key) of the message
+     * @param title   Title of the notification
+     * @param message Content of the notification
+     */
+
+    public void message(String topic, String title, String message, String activity, String start) throws JSONException, ParseException {
         database.push(topic,
                 new JSONObject()
                         .put("title", title)
                         .put("text", message)
+                        .put("intent",
+                                new JSONObject()
+                                        .put("activity", activity)
+                                        .put("startValue", start))
                         .put("id", makeUniqueIdentifier())
                         .toString());
 
@@ -119,10 +151,11 @@ public class Artic {
 
     /**
      * Listen to a topic
+     *
      * @param topic Topic name
      */
 
-    public void listen(String topic) {
+    protected void listen(String topic) {
         if (!topic.isEmpty()) {
             for (String child : topic.split("/")) {
                 firebase = firebase.child(child);
@@ -131,26 +164,46 @@ public class Artic {
         firebase.addChildEventListener(articChildListener);
     }
 
-    public static void watch(Context context, String token, String url, String topic) {
+    public void listen(Context context, String topic) {
         SharedPreferences.Editor preferences = articSharedPreferences(context).edit();
         preferences.putString("token", token)
                 .putString("url", url)
-                .putString("topic", topic);
+                .putString("topic", topic)
+                .putBoolean("enabled", true);
         preferences.commit();
         ArticService.initialize(context);
     }
 
-    public static SharedPreferences articSharedPreferences(Context context) {
+    public void cancel() {
+        cancelJob();
+        articSharedPreferences(context).edit().
+                putBoolean("enabled", false).commit();
+    }
+
+    private void cancelJob() {
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(
+                Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.cancel(ArticService.JOB);
+    }
+
+    /**
+     * Returns the Artic Shared Preferences
+     */
+
+    static SharedPreferences articSharedPreferences(Context context) {
         return context.getSharedPreferences(
                 SIMPLE_NAME +
-                '$' + "watch", Context.MODE_PRIVATE);
+                        '$' + "watch", Context.MODE_PRIVATE);
     }
 
     /**
      * Initializes the Firebase
      */
 
+    public static boolean isInitialized = false;
+
     public static void initialize(Context context) {
+        isInitialized = true;
         Firebase.setAndroidContext(context);
     }
 }

@@ -22,6 +22,7 @@ public class ArticService extends JobService {
      */
 
     private static final String LOG_TAG = "ArticService";
+    private SharedPreferences preferences;
 
     /**
      * Initializes the Artic Service
@@ -68,10 +69,13 @@ public class ArticService extends JobService {
         // can initialize
         Artic.initialize(this);
 
-        SharedPreferences preferences = Artic.articSharedPreferences(this);
+        // read data and
+        // create the listener
 
-        Artic artic = new Artic(this);
-        artic.listen(preferences.getString("topic", ""));
+        this.preferences = Artic.articSharedPreferences(this);
+        Artic artic = Artic.getInstance(this);
+        artic.listen(preferences
+                .getString("topic", ""));
     }
 
     /**
@@ -82,10 +86,14 @@ public class ArticService extends JobService {
     public boolean onStopJob(JobParameters parms) {
         Log.d(LOG_TAG, "Stopping Job Service");
 
-        // attempt to restart the service through broadcast,
-        // so we can run again
+        boolean enabled = preferences.getBoolean(
+                "enabled", false);
+        if (enabled) {
+            // attempt to restart the service through broadcast,
+            // so we can run again
 
-        ArticService.initialize(this);
+            ArticService.initialize(this);
+        }
         return false;
     }
 }

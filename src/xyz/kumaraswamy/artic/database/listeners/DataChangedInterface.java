@@ -2,5 +2,5 @@ package xyz.kumaraswamy.artic.database.listeners;
 
 
 public interface DataChangedInterface {
-    void dataChanged(String key, String value);
+    void whenNewMessage(String key, String value);
 }

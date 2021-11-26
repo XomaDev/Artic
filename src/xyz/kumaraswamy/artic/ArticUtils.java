@@ -1,17 +1,10 @@
 package xyz.kumaraswamy.artic;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 import java.util.TimeZone;
-
-import static android.content.Context.ALARM_SERVICE;
 
 public class ArticUtils {
 

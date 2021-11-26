@@ -32,7 +32,7 @@ public class ArticChildListener implements ChildEventListener {
             // we can ignore that
             return;
         }
-        changedInterface.dataChanged(key, value);
+        changedInterface.whenNewMessage(key, value);
     }
 
     @Override

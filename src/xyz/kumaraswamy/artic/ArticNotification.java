@@ -1,11 +1,10 @@
 package xyz.kumaraswamy.artic;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.Person;
+import android.app.*;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import org.json.JSONException;
@@ -60,15 +59,39 @@ public class ArticNotification {
                 // for older versions
                 new Notification.Builder(context);
 
-        builder.setCategory(Notification.CATEGORY_MESSAGE)
-                .setSmallIcon(android.R.drawable.ic_dialog_email);
+        JSONObject intentAction = new JSONObject(
+                jsonObject.getString("intent"));
+        String action = intentAction.getString("activity");
 
+        if (!action.contains(".")) {
+            String clazzName = context.getPackageName() + "." + action;
+            try {
+                // check if the clazz exists
+                Class.forName(clazzName);
+                action = clazzName;
+            } catch (ClassNotFoundException e) {
+                // we just ignore this
+            }
+        }
+
+        Log.d(LOG_TAG, "Action Name " + action);
+
+        Intent intent = new Intent("android.intent.action.VIEW",
+                Uri.parse(action));
+        intent.putExtra("APP_INVENTOR_START",
+                intentAction.getString("startValue"));
+        PendingIntent pendingIntent = PendingIntent.getActivity(context,0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        builder.setCategory(Notification.CATEGORY_MESSAGE)
+                .setSmallIcon(android.R.drawable.ic_dialog_email)
+                .setContentIntent(pendingIntent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // specialized styled notification
             createMessageStyle(title, content, builder);
         } else {
-            builder.setContentText(title);
-            builder.setContentText(content);
+            builder.setContentText(title)
+                    .setContentText(content);
         }
 
         manager.notify(name.hashCode() +
